@@ -20,12 +20,17 @@ body {
 
 body.editing #container {
     background-color: white;
-    border-color: white;
+    border-color: #009688;
+}
+
+body.editing.task-running #container {
+    background-color: white;
+    border-color: #9c27b0;
 }
 
 #time {
     text-align: center;
-    font: 600 28px "Consolas";
+    font: 600 24px "Lucida Sans Typewriter";
     color: #009688;
     -webkit-text-fill-color: white;
     -webkit-text-stroke: 1px;
