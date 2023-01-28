@@ -16,6 +16,14 @@ npm install
 4. Put your api key to `.env` file
 
 ## Run
+Launch from terminal
 ```shell
 npm start
 ```
+or launch via double-click on `run.bat`
+
+## Autorun
+1. Create a shortcut to `run.bat`
+2. Type `Win+R`, then `shell:startup`, `Enter`
+3. Move created link to the startup folder
+

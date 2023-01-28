@@ -1,5 +1,13 @@
-require('dotenv').config()
 const { app, BrowserWindow, globalShortcut } = require('electron')
+
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+    console.log("The app is already running")
+    app.quit()
+    return
+}
+
+require('dotenv').config()
 const path = require('path')
 const fs = require('fs');
 const clockify = require('./clockify-integration')
@@ -17,16 +25,21 @@ app.on('window-all-closed', function () {
     if (process.platform !== 'darwin') app.quit()
 })
 
-// process.exit(0)
-clockify.init(process.env.CLOCKIFY_API_KEY)
+clockify.init(process.env.CLOCKIFY_API_KEY).then(() => {
+    updateTitle()
+    setInterval(updateTitle, 1500)
+})
+
+const WIDTH = 200;
+const HEIGHT = 100;
 
 const createWindow = () => {
     win = new BrowserWindow({
         frame: false,
         transparent: true,
         alwaysOnTop: true,
-        width: 300,
-        height: 100,
+        width: WIDTH,
+        height: HEIGHT,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
         }
@@ -39,11 +52,22 @@ const createWindow = () => {
 
 app.whenReady().then(() => {
     createWindow()
-    console.log('xd')
 
     globalShortcut.register('Alt+,', () => {
-        console.log('hi')
         toggleWindow()
+    })
+    globalShortcut.register('Alt+.', () => {
+        if (win.webContents.isDevToolsOpened()) {
+            win.setSize(WIDTH, HEIGHT)
+            win.webContents.closeDevTools()
+            isWinEditMode = false
+            applyEditMode()
+        } else {
+            isWinEditMode = true
+            applyEditMode()
+            win.setSize(800, 400)
+            win.webContents.openDevTools()
+        }
     })
 
     app.on('activate', function () {
@@ -52,8 +76,6 @@ app.whenReady().then(() => {
 })
 
 function applyEditMode() {
-    console.log('isWinEditMode=' + isWinEditMode)
-
     win.setIgnoreMouseEvents(!isWinEditMode);
     win.setFocusable(isWinEditMode);
 
@@ -71,10 +93,7 @@ function toggleWindow() {
 function loadSettings() {
     if (fs.existsSync(settingsFile)) {
         settings = JSON.parse(fs.readFileSync(settingsFile))
-        console.log('loaded settings: ')
-        console.log(settings)
     } else {
-        console.log('loaded default settings')
         settings = {
             winPos: [0, 0]
         }
@@ -93,7 +112,6 @@ function saveWindowPos() {
     }
 
     settings.winPos = newPos
-    console.log('new pos: ', newPos)
     saveSettings()
 }
 
@@ -108,13 +126,10 @@ function updateTitle() {
             }
 
             win.webContents.send('message', {
-                'type': 'startDateChanged',
-                'startDate': noTasksSinceDate.toISOString()
-            })
-
-            win.webContents.send('message', {
-                'type': 'titleChanged',
-                'title': "No running tasks"
+                'type': 'taskUpdate',
+                'startDate': noTasksSinceDate.toISOString(),
+                'title': 'No running tasks',
+                'isRunning': false
             })
             return
         }
@@ -122,19 +137,13 @@ function updateTitle() {
         const start = res[0].timeInterval.start
 
         win.webContents.send('message', {
-            'type': 'startDateChanged',
-            'startDate': start
+            'type': 'taskUpdate',
+            'startDate': start,
+            'title': res[0].description,
+            'isRunning': true
         })
-
-        win.webContents.send('message', {
-            'type': 'titleChanged',
-            'title': res[0].description
-        })
-
-        console.log(start, res[0].description)
     }).catch(err => {
         console.log(err)
     })
 
 }
-setInterval(updateTitle, 1500)

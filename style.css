@@ -7,31 +7,54 @@
 body {
     /* background: rgba(137, 43, 226, 0.294); */
     /* color: rgba(0, 0, 0, 0.5) */
+    overflow: hidden;
 }
 
 #container {
+    /* background-color: rgba(255, 255, 255, 0.4); */
+    width: 150px;
     padding: 4px;
     border: 4px solid transparent;
+    border-radius: 8px;
 }
 
 body.editing #container {
-    background-color: violet;
-    border: 4px solid purple;
-    border-radius: 16px;
-
+    background-color: white;
+    border-color: white;
 }
 
 #time {
-    font: 800 28px "Consolas";
-    color: purple;
+    text-align: center;
+    font: 600 28px "Consolas";
+    color: #009688;
     -webkit-text-fill-color: white;
     -webkit-text-stroke: 1px;
 }
 
+body.task-running #time {
+    color: #9c27b0;
+}
+
 #task {
-    font-size: 16px;
+    text-align: center;
+    display: none;
+    font-family: Tahoma;
+    font-size: 15px;
     width: 150px;
-    color: black;
-    background: white;
-    padding: 1px;
+    color: hsl(291deg 66% 51%);
+}
+
+body.task-running #task {
+    display: block;
+}
+
+#exit-btn {
+    display: none;
+    padding: 2px;
+    margin: 2px auto;
+    -webkit-app-region: no-drag;
+}
+
+body.editing #exit-btn {
+    display: block;
 }

@@ -8,6 +8,10 @@ let startDate = new Date()
 const timeNode = document.getElementById('time')
 const titleNode = document.getElementById('task')
 
+document.getElementById('exit-btn').onclick = () => {
+    close();
+}
+
 function loop() {
     if (startDate === null) {
         timeNode.textContent = secondsToHhMmSs(0)
@@ -25,10 +29,8 @@ loop();
 electronAPI.handleMessage((msg) => {
     if (msg.type === 'modeChanged') {
         setWinEditMode(msg.isWinEditMode)
-    } else if (msg.type === 'titleChanged') {
-        setTitle(msg.title)
-    } else if (msg.type === 'startDateChanged') {
-        setStartDate(msg.startDate)
+    } else if (msg.type === 'taskUpdate') {
+        updateTask(msg)
     }
 })
 
@@ -40,14 +42,13 @@ function setWinEditMode(isWinEditMode) {
     }
 }
 
-function setTitle(title) {
-    titleNode.textContent = title
-}
+function updateTask(task) {
+    titleNode.textContent = task.title
+    startDate = new Date(task.startDate)
 
-function setStartDate(date) {
-    if (date === null) {
-        startDate = null
-        return
+    if (task.isRunning) {
+        document.body.classList.add('task-running')
+    } else {
+        document.body.classList.remove('task-running')
     }
-    startDate = new Date(date)
 }
