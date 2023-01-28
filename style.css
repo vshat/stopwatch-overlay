@@ -2,17 +2,13 @@
     margin: 0;
     padding: 0;
     -webkit-app-region: drag;
-}
-
-body {
-    /* background: rgba(137, 43, 226, 0.294); */
-    /* color: rgba(0, 0, 0, 0.5) */
+    box-sizing: border-box;
     overflow: hidden;
 }
 
 #container {
     /* background-color: rgba(255, 255, 255, 0.4); */
-    width: 150px;
+    width: 200px;
     padding: 4px;
     border: 4px solid transparent;
     border-radius: 8px;
@@ -30,7 +26,7 @@ body.editing.task-running #container {
 
 #time {
     text-align: center;
-    font: 600 24px "Lucida Sans Typewriter";
+    font: 600 28px "Lucida Sans Typewriter";
     color: #009688;
     -webkit-text-fill-color: white;
     -webkit-text-stroke: 1px;
@@ -45,7 +41,6 @@ body.task-running #time {
     display: none;
     font-family: Tahoma;
     font-size: 15px;
-    width: 150px;
     color: hsl(291deg 66% 51%);
 }
 
