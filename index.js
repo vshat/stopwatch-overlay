@@ -69,6 +69,15 @@ app.whenReady().then(() => {
             win.webContents.openDevTools()
         }
     })
+    globalShortcut.register('Alt+/', () => {
+        noTasksSinceDate = new Date()
+        win.webContents.send('message', {
+            'type': 'taskUpdate',
+            'startDate': noTasksSinceDate.toISOString(),
+            'title': "",
+            'isRunning': false
+        })
+    })
 
     app.on('activate', function () {
         if (BrowserWindow.getAllWindows().length === 0) createWindow()
