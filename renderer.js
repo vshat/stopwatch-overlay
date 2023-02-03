@@ -7,10 +7,14 @@ function secondsToHhMmSs(seconds) {
 let startDate = new Date()
 const timeNode = document.getElementById('time')
 const titleNode = document.getElementById('task')
+const exitButton = document.getElementById('exit-btn')
+const stopButton = document.getElementById('c-stop-btn')
+const startButton = document.getElementById('c-start-btn')
 
-document.getElementById('exit-btn').onclick = () => {
-    close();
-}
+exitButton.onclick = () => window.close()
+stopButton.onclick = () => electronAPI.sendMessage('c-stop')
+startButton.onclick = () => electronAPI.sendMessage('c-start')
+
 
 function loop() {
     if (startDate === null) {
@@ -34,6 +38,8 @@ electronAPI.handleMessage((msg) => {
     }
 })
 
+electronAPI.sendMessage('ipc-ready')
+
 function setWinEditMode(isWinEditMode) {
     if (isWinEditMode) {
         document.body.classList.add('editing')
@@ -51,4 +57,7 @@ function updateTask(task) {
     } else {
         document.body.classList.remove('task-running')
     }
+
+    stopButton.style.display = task.isRunning ? "" : "none"
+    startButton.style.display = !task.isRunning ? "" : "none"
 }

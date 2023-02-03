@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut } = require('electron')
+const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron')
 
 const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
@@ -17,18 +17,23 @@ const settingsFile = path.join(__dirname, 'settings.json')
 let noTasksSinceDate = new Date()
 let isTaskRunning = false
 let win;
-let isWinEditMode = false;
 let settings = {}
 loadSettings()
+
+let isWinEditMode = settings.isWinEditMode;
+
 
 app.on('window-all-closed', function () {
     if (process.platform !== 'darwin') app.quit()
 })
 
-clockify.init(process.env.CLOCKIFY_API_KEY).then(() => {
-    updateTitle()
-    setInterval(updateTitle, 1500)
-})
+if (process.env.CLOCKIFY_ENABLED) {
+    clockify.init(process.env.CLOCKIFY_API_KEY).then(() => {
+        updateTitle()
+        setInterval(updateTitle, 1500)
+    })
+}
+const CLOCKIFY_DEFAULT_PROJECT_ID = process.env.CLOCKIFY_DEFAULT_PROJECT_ID || null
 
 const WIDTH = 200;
 const HEIGHT = 100;
@@ -40,6 +45,7 @@ const createWindow = () => {
         alwaysOnTop: true,
         width: WIDTH,
         height: HEIGHT,
+        resizable: false,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
         }
@@ -47,11 +53,11 @@ const createWindow = () => {
 
     win.setPosition(settings.winPos[0], settings.winPos[1])
     win.loadFile('index.html')
-    applyEditMode()
 }
 
 app.whenReady().then(() => {
     createWindow()
+    applyEditMode()
 
     globalShortcut.register('Alt+,', () => {
         toggleWindow()
@@ -84,6 +90,18 @@ app.whenReady().then(() => {
     })
 })
 
+ipcMain.on('message', (ev, data) => {
+    if (data === 'c-stop') {
+        handleClockifyStop()
+    } else if (data === 'c-start') {
+        handleClockifyStart()
+    } else if (data === 'ipc-ready') {
+        handleRendererIpcReady()
+    } else {
+        console.log('ipcMain: unknown message:', data)
+    }
+})
+
 function applyEditMode() {
     win.setIgnoreMouseEvents(!isWinEditMode);
     win.setFocusable(isWinEditMode);
@@ -104,27 +122,44 @@ function loadSettings() {
         settings = JSON.parse(fs.readFileSync(settingsFile))
     } else {
         settings = {
-            winPos: [0, 0]
+            winPos: [0, 0],
+            isWinEditMode: false
         }
     }
 }
 
-function saveSettings() {
-    fs.writeFileSync(settingsFile, JSON.stringify(settings, undefined, 4))
-    console.log('saved settings')
+function writeSettings() {
+    const str = JSON.stringify(settings, undefined, 4)
+    fs.writeFileSync(settingsFile, str)
+    console.log('saved settings: ' + JSON.stringify(settings))
 }
 
 function saveWindowPos() {
     newPos = win.getPosition()
     if (settings.winPos[0] === newPos[0] && settings.winPos[1] === newPos[1]) {
-        return // no changes
+        return false
     }
 
     settings.winPos = newPos
-    saveSettings()
+    return true
 }
 
-setInterval(saveWindowPos, 1000)
+function saveWinMode() {
+    if (settings.isWinEditMode === isWinEditMode) {
+        return false
+    }
+
+    settings.isWinEditMode = isWinEditMode
+    return true
+}
+
+function saveSettings() {
+    if (saveWindowPos() || saveWinMode()) {
+        writeSettings()
+    }
+}
+
+setInterval(saveSettings, 1000)
 
 function updateTitle() {
     clockify.getActiveTimeEntries().then(res => {
@@ -155,4 +190,43 @@ function updateTitle() {
         console.log(err)
     })
 
+}
+
+async function handleClockifyStop() {
+    console.log('clockify stop')
+    if (!isTaskRunning) {
+        console.log('There is no clockify task to stop')
+    }
+    noTasksSinceDate = new Date()
+    try {
+        const res = await clockify.stopActiveTimeEntry(noTasksSinceDate.toISOString())
+        // console.log(res)
+
+        win.webContents.send('message', {
+            'type': 'taskUpdate',
+            'startDate': noTasksSinceDate.toISOString(),
+            'title': "",
+            'isRunning': false
+        })
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+async function handleClockifyStart() {
+    console.log('clockify start')
+    if (isTaskRunning) {
+        console.log('clockify task is already started - doing nothing')
+    }
+
+    try {
+        const res = await clockify.createTimeEntry(
+            noTasksSinceDate.toISOString(), "", CLOCKIFY_DEFAULT_PROJECT_ID)
+
+        // console.log(res)
+    } catch (e) { console.log(e) }
+}
+
+function handleRendererIpcReady() {
+    applyEditMode()
 }

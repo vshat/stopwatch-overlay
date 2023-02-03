@@ -26,7 +26,7 @@ body.editing.task-running #container {
 
 #time {
     text-align: center;
-    font: 600 28px "Lucida Sans Typewriter";
+    font: 600 26px "Lucida Sans Typewriter";
     color: #009688;
     -webkit-text-fill-color: white;
     -webkit-text-stroke: 1px;
@@ -48,13 +48,17 @@ body.task-running #task {
     display: block;
 }
 
-#exit-btn {
+#buttons {
     display: none;
+    text-align: center;
+}
+
+#buttons button {
     padding: 2px;
-    margin: 2px auto;
+    margin: 2px 0;
     -webkit-app-region: no-drag;
 }
 
-body.editing #exit-btn {
+body.editing #buttons {
     display: block;
 }

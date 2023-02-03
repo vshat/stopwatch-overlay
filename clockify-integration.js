@@ -68,10 +68,53 @@ async function getActiveTimeEntryDate() {
     return new Date(start)
 }
 
+/**
+ * 
+ * @param {string} start - iso8601 datetime
+ * @param {string} description 
+ * @param {string} projectId 
+ */
+async function createTimeEntry(start, description, projectId) {
+    const data = {
+        start,
+        description,
+        projectId
+    }
+
+    const url = `https://api.clockify.me/api/v1/workspaces/${_selectedWorkspace.id}/time-entries`
+    const res = await axios.post(url, data, {
+        headers: {
+            'x-api-key': _apiKey
+        }
+    })
+
+    return res.data
+}
+
+/**
+ * 
+ * @param {string} end - iso8601 datetime
+ */
+async function stopActiveTimeEntry(end) {
+    const data = {
+        end
+    }
+
+    const url = `https://api.clockify.me/api/v1/workspaces/${_selectedWorkspace.id}/user/${_user.id}/time-entries`
+    const res = await axios.patch(url, data, {
+        headers: {
+            'x-api-key': _apiKey
+        }
+    })
+
+    return res.data
+}
 module.exports = {
     getUserInfo,
     init,
     getWorkspaces,
     getActiveTimeEntries,
-    getActiveTimeEntryDate
+    getActiveTimeEntryDate,
+    createTimeEntry,
+    stopActiveTimeEntry
 }
