@@ -1,7 +1,12 @@
 :root {
     --container-width: 160px;
+
     --time-font: 600 22px "Lucida Sans Typewriter";
-    --task-font-size: 13px
+    --time-running-color: #e65100;
+    --time-afk-color: #00838f;
+
+    --task-font-size: 13px;
+    --task-running-color: gray;
 }
 
 * {
@@ -33,13 +38,13 @@ body.editing.task-running #container {
 #time {
     text-align: center;
     font: var(--time-font);
-    color: #009688;
+    color: var(--time-afk-color);
     -webkit-text-fill-color: white;
     -webkit-text-stroke: 1px;
 }
 
 body.task-running #time {
-    color: #9c27b0;
+    color: var(--time-running-color);
 }
 
 #task {
@@ -47,7 +52,7 @@ body.task-running #time {
     display: none;
     font-family: Tahoma;
     font-size: var(--task-font-size);
-    color: hsl(291deg 66% 51%);
+    color: var(--task-running-color);
 }
 
 body.task-running #task {
