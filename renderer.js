@@ -5,6 +5,7 @@ function secondsToHhMmSs(seconds) {
 }
 
 let startDate = new Date()
+const container = document.getElementById('container')
 const timeNode = document.getElementById('time')
 const titleNode = document.getElementById('task')
 const exitButton = document.getElementById('exit-btn')
@@ -15,6 +16,19 @@ exitButton.onclick = () => window.close()
 stopButton.onclick = () => electronAPI.sendMessage('c-stop')
 startButton.onclick = () => electronAPI.sendMessage('c-start')
 
+
+new ResizeObserver(onContainerSizeChanged).observe(container)
+
+function onContainerSizeChanged() {
+    electronAPI.sendMessage({
+        type: 'container-size-changed',
+        size: {
+            width: container.offsetWidth,
+            height: container.offsetHeight,
+        }
+    })
+}
+onContainerSizeChanged()
 
 function loop() {
     if (startDate === null) {
@@ -35,6 +49,8 @@ electronAPI.handleMessage((msg) => {
         setWinEditMode(msg.isWinEditMode)
     } else if (msg.type === 'taskUpdate') {
         updateTask(msg)
+    } else if (msg.type === 'transparencyChanged') {
+        setContainerTransparent(msg.transparent)
     }
 })
 
@@ -60,4 +76,12 @@ function updateTask(task) {
 
     stopButton.style.display = task.isRunning ? "" : "none"
     startButton.style.display = !task.isRunning ? "" : "none"
+}
+
+function setContainerTransparent(isTransparent) {
+    if (isTransparent) {
+        document.body.classList.add('transparent')
+    } else {
+        document.body.classList.remove('transparent')
+    }
 }

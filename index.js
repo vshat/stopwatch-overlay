@@ -13,12 +13,17 @@ const fs = require('fs');
 const clockify = require('./clockify-integration')
 
 const settingsFile = path.join(__dirname, 'settings.json')
+const CONTAINER_HOVER_DETECTION_GAP = 20
 
 let noTasksSinceDate = new Date()
 let isTaskRunning = false
 let win;
 let settings = {}
 loadSettings()
+let containerSize = {
+    width: 0,
+    height: 0
+}
 
 let isWinEditMode = settings.isWinEditMode;
 
@@ -58,6 +63,7 @@ const createWindow = () => {
 app.whenReady().then(() => {
     createWindow()
     applyEditMode()
+    setupMouseTracker()
 
     globalShortcut.register('Alt+,', () => {
         toggleWindow()
@@ -97,6 +103,9 @@ ipcMain.on('message', (ev, data) => {
         handleClockifyStart()
     } else if (data === 'ipc-ready') {
         handleRendererIpcReady()
+    } else if (data.type && data.type === 'container-size-changed') {
+        containerSize = data.size
+        console.log('new container size:', containerSize)
     } else {
         console.log('ipcMain: unknown message:', data)
     }
@@ -135,6 +144,8 @@ function writeSettings() {
 }
 
 function saveWindowPos() {
+    if (win.isDestroyed()) return false;
+
     newPos = win.getPosition()
     if (settings.winPos[0] === newPos[0] && settings.winPos[1] === newPos[1]) {
         return false
@@ -163,6 +174,8 @@ setInterval(saveSettings, 1000)
 
 function updateTitle() {
     clockify.getActiveTimeEntries().then(res => {
+        if (win.isDestroyed()) return;
+
         if (!res[0]) {
             if (isTaskRunning) {
                 noTasksSinceDate = new Date()
@@ -229,4 +242,41 @@ async function handleClockifyStart() {
 
 function handleRendererIpcReady() {
     applyEditMode()
+}
+
+function setupMouseTracker() {
+    // We cannot require the screen module until the app is ready.
+    const { screen } = require('electron')
+
+    let wasHovering = false;
+    setInterval(() => {
+        if (win.isDestroyed()) {
+            return
+        }
+
+        // { x: 674, y: 200}
+        const cursor = screen.getCursorScreenPoint()
+
+        // { x: 1153, y: 285, width: 202, height: 103 }
+        const winBounds = win.webContents.getOwnerBrowserWindow().getBounds()
+
+        const gap = CONTAINER_HOVER_DETECTION_GAP;
+
+        const cursorHoversWindow = cursor.x >= winBounds.x - gap &&
+            cursor.x <= winBounds.x + containerSize.width + gap &&
+            cursor.y >= winBounds.y - gap &&
+            cursor.y <= winBounds.y + containerSize.height + gap
+
+        if (wasHovering != cursorHoversWindow) {
+            wasHovering = cursorHoversWindow
+
+            win.webContents.send('message', {
+                'type': 'transparencyChanged',
+                'transparent': cursorHoversWindow
+            })
+
+            console.log({ cursorHoversWindow })
+        }
+
+    }, 50)
 }

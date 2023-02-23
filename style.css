@@ -7,6 +7,10 @@
 
     --task-font-size: 10px;
     --task-running-color: gray;
+
+    --body-hovered-opacity: 0.1;
+    --body-transition: opacity 1s;
+    --body-transition-delay: 0.2s;
 }
 
 * {
@@ -15,6 +19,19 @@
     -webkit-app-region: drag;
     box-sizing: border-box;
     overflow: hidden;
+}
+
+body {
+    transition: var(--body-transition);
+    transition-delay: var(--body-transition-delay);
+}
+
+body.transparent {
+    opacity: var(--body-hovered-opacity);
+}
+
+body.editing {
+    opacity: 1 !important;
 }
 
 #container {
