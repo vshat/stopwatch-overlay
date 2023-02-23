@@ -3,7 +3,7 @@
 
     --time-font: 600 18px "Lucida Sans Typewriter";
     --time-running-color: #e65100;
-    --time-afk-color: #00838f;
+    --time-afk-color: #3f51b5;
 
     --task-font-size: 10px;
     --task-running-color: gray;
@@ -43,12 +43,12 @@ body.editing {
 
 body.editing #container {
     background-color: white;
-    border-color: #009688;
+    border-color: var(--time-afk-color)
 }
 
 body.editing.task-running #container {
     background-color: white;
-    border-color: #9c27b0;
+    border-color: var(--time-running-color);
 }
 
 #time {
