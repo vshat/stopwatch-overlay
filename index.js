@@ -65,10 +65,10 @@ app.whenReady().then(() => {
     applyEditMode()
     setupMouseTracker()
 
-    globalShortcut.register('Alt+,', () => {
+    globalShortcut.registerAll(['Alt+,', 'Ctrl+Alt+,'], () => {
         toggleWindow()
     })
-    globalShortcut.register('Alt+.', () => {
+    globalShortcut.registerAll(['Alt+.', 'Ctrl+Alt+.'], () => {
         if (win.webContents.isDevToolsOpened()) {
             win.setSize(WIDTH, HEIGHT)
             win.webContents.closeDevTools()
@@ -81,7 +81,7 @@ app.whenReady().then(() => {
             win.webContents.openDevTools()
         }
     })
-    globalShortcut.register('Alt+/', () => {
+    globalShortcut.registerAll(['Alt+/', 'Ctrl+Alt+/'], () => {
         noTasksSinceDate = new Date()
         win.webContents.send('message', {
             'type': 'taskUpdate',
