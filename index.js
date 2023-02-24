@@ -105,7 +105,6 @@ ipcMain.on('message', (ev, data) => {
         handleRendererIpcReady()
     } else if (data.type && data.type === 'container-size-changed') {
         containerSize = data.size
-        console.log('new container size:', containerSize)
     } else {
         console.log('ipcMain: unknown message:', data)
     }
@@ -140,7 +139,6 @@ function loadSettings() {
 function writeSettings() {
     const str = JSON.stringify(settings, undefined, 4)
     fs.writeFileSync(settingsFile, str)
-    console.log('saved settings: ' + JSON.stringify(settings))
 }
 
 function saveWindowPos() {
@@ -274,8 +272,6 @@ function setupMouseTracker() {
                 'type': 'transparencyChanged',
                 'transparent': cursorHoversWindow
             })
-
-            console.log({ cursorHoversWindow })
         }
 
     }, 50)
